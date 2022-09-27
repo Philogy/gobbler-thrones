@@ -7,22 +7,20 @@ import {IArtGobblers} from "./IArtGobblers.sol";
 
 /// @author Philippe Dumonet <philippe@dumo.net>
 /// @author Philogy <https://github.com/Philogy>
+/// @dev WARNING: basic af, not optimized just yet
 contract GobblerThrone is ERC20 {
     struct Participant {
         address account;
         uint16 gobblerId;
         uint8 multiple;
     }
-    // each uint16 is one deposited gobbler:
-    // <2 bits - multiple> <14 bits - gobbler ID>
     mapping(uint256 => Participant) internal participants;
 
     uint256 internal constant FIRST_LEGENDARY_GOBBLER_ID = 9991;
     // 1000 shares / 1x gobbler multiple
     uint256 internal constant MULTIPLE_TO_SHARES_FACTOR = 1e21;
 
-    // 1 GOO
-    uint128 internal constant AUCTION_START_PRICE = 1e18;
+    uint128 internal constant AUCTION_START_PRICE = 1e18; // 1 GOO
     uint256 internal constant ONE_IN_BPS = 10000; // 5%
     uint256 internal constant BID_MIN_INCREASE_BPS = 500; // 5%
     uint256 internal constant BID_MIN_INCREASE_FACTOR_BPS =
@@ -30,6 +28,8 @@ contract GobblerThrone is ERC20 {
     uint256 internal constant AUCTION_GRACE_PERIOD = 30 minutes;
     uint256 internal constant AUCTION_START_DURATION = 7 days;
 
+    // Model contract as finite state machine for the sake of simplicity and
+    // security
     enum ThroneState {
         Forming,
         FormationFailed,
@@ -78,6 +78,7 @@ contract GobblerThrone is ERC20 {
         _;
     }
 
+    /// @dev deposit a Gobbler, adding a potential piece to the throne
     function join(uint256 _gobblerId) external onlyState(ThroneState.Forming) {
         artGobblers.transferFrom(msg.sender, address(this), _gobblerId);
         unchecked {
@@ -98,6 +99,7 @@ contract GobblerThrone is ERC20 {
         }
     }
 
+    /// @dev attempts to mint the legendary Gobbler
     function form() external onlyState(ThroneState.Forming) {
         uint256 gobblersToBeSacrificed = artGobblers.legendaryGobblerPrice();
         if (totalJoined < gobblersToBeSacrificed) revert InsufficientGobblers();
@@ -114,11 +116,13 @@ contract GobblerThrone is ERC20 {
         state = ThroneState.Formed;
     }
 
+    /// @dev enter failure mode if necessary timestamp was passed
     function checkFailedFormation() external onlyState(ThroneState.Forming) {
         if (block.timestamp >= formationFailsAt)
             state = ThroneState.FormationFailed;
     }
 
+    /// @dev retrieve Gobbler if throne formation failed
     function failExit(uint256 _participantId)
         external
         onlyState(ThroneState.FormationFailed)
@@ -129,6 +133,7 @@ contract GobblerThrone is ERC20 {
         artGobblers.transferFrom(address(this), account, gobblerId);
     }
 
+    /// @dev if legendary Gobbler was minted get shares
     function issueShares(uint256 _participantId)
         external
         onlyState(ThroneState.Formed)
@@ -141,6 +146,7 @@ contract GobblerThrone is ERC20 {
         _mint(account, MULTIPLE_TO_SHARES_FACTOR * multiple);
     }
 
+    /// @dev retrieve Gobbler that couldn't be used to mint legendary
     function notParticipantExit(uint256 _participantId)
         external
         onlyState(ThroneState.Formed)
@@ -152,6 +158,7 @@ contract GobblerThrone is ERC20 {
         artGobblers.transferFrom(address(this), account, gobblerId);
     }
 
+    /// @dev check if throne dissolution auction can begin
     function checkAuctionStart() external onlyState(ThroneState.Formed) {
         if (block.timestamp >= auctionStartsAt) {
             state = ThroneState.AuctionInProgress;
@@ -160,6 +167,32 @@ contract GobblerThrone is ERC20 {
         }
     }
 
+    /// @dev bid in auction using GOO tokens
+    function bid(uint256 _bidAmount)
+        external
+        onlyState(ThroneState.AuctionInProgress)
+    {
+        goo.transferFrom(msg.sender, address(this), _bidAmount);
+        if (checkAuctionEnd()) return;
+        address cachedTopBidder = topBidder;
+        uint256 prevBestBid = bestBid;
+        if (prevBestBid * BID_MIN_INCREASE_FACTOR_BPS > _bidAmount * ONE_IN_BPS)
+            revert BidTooLow();
+        // refund previous bidder if it's not the first bid
+        if (cachedTopBidder != address(0))
+            goo.transfer(cachedTopBidder, prevBestBid);
+        bestBid = uint128(_bidAmount);
+        topBidder = msg.sender;
+        uint256 minimumEndTime = block.timestamp + AUCTION_GRACE_PERIOD;
+        uint256 currentAuctionEnd = auctionEnd;
+        auctionEnd = uint64(
+            minimumEndTime > currentAuctionEnd
+                ? minimumEndTime
+                : currentAuctionEnd
+        );
+    }
+
+    /// @dev check whether auction has finalized
     function checkAuctionEnd()
         public
         onlyState(ThroneState.AuctionInProgress)
@@ -178,29 +211,7 @@ contract GobblerThrone is ERC20 {
         return false;
     }
 
-    function bid(uint256 _bidAmount)
-        external
-        onlyState(ThroneState.AuctionInProgress)
-    {
-        goo.transferFrom(msg.sender, address(this), _bidAmount);
-        if (checkAuctionEnd()) return;
-        address cachedTopBidder = topBidder;
-        uint256 prevBestBid = bestBid;
-        if (prevBestBid * BID_MIN_INCREASE_FACTOR_BPS > _bidAmount * ONE_IN_BPS)
-            revert BidTooLow();
-        if (cachedTopBidder != address(0))
-            goo.transfer(cachedTopBidder, prevBestBid);
-        bestBid = uint128(_bidAmount);
-        topBidder = msg.sender;
-        uint256 minimumEndTime = block.timestamp + AUCTION_GRACE_PERIOD;
-        uint256 currentAuctionEnd = auctionEnd;
-        auctionEnd = uint64(
-            minimumEndTime > currentAuctionEnd
-                ? minimumEndTime
-                : currentAuctionEnd
-        );
-    }
-
+    /// @dev claim share of GOO produced by the legendary + auction proceeds
     function claimShare(address _recipient)
         external
         onlyState(ThroneState.Dissolved)
