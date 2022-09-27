@@ -1,4 +1,4 @@
-# Gobbler Throne
+# Gobbler Thrones
 > No one person can bear the might of a legendary gobbler, we shall bear it together!
 
 `GobblerThrone` is a relatively simple pooling contract that can be deployed by
