@@ -15,6 +15,12 @@ even more GOO. Once the auction is complete
 and the throne is fully dissolved shares can be redeemed for a proportional
 share of all the GOO that was accumulated in the throne contract.
 
+## TODOs
+- testing
+- add events
+- optimize contract
+- create UI
+
 ## Specifics
 ### Share Receival
 Due to the decreasing price of legendary Gobblers the contract is first-come
@@ -42,5 +48,3 @@ only be withdrawn once the throne is dissolved. TODO: Have legendary Gobbler be
 deposited in [Goo Stew](https://github.com/MrToph/goostew/) for even better GOO
 production.
 
-## Testing
-TODO: Need to actually test the contract :P
