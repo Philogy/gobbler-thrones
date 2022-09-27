@@ -34,3 +34,9 @@ depending on the configured delay. The auction must go for at least 30 minutes
 without bids before finalizing, this is to protect against last minute sniping
 whereby people wait until the last moment to submit bids. Each bid must be at
 least 5% higher than the previous.
+
+### GOO Withdrawal
+To simplify the system and ensure the maximum amount of GOO is issued GOO can
+only be withdrawn once the throne is dissolved. TODO: Have legendary Gobbler be
+deposited in [Goo Stew](https://github.com/MrToph/goostew/) for even better GOO
+production.
