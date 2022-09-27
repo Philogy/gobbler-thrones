@@ -2,13 +2,14 @@
 pragma solidity 0.8.15;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Multicall} from "@openzeppelin/contracts/utils/Multicall.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {IArtGobblers} from "./IArtGobblers.sol";
 
 /// @author Philippe Dumonet <philippe@dumo.net>
 /// @author Philogy <https://github.com/Philogy>
 /// @dev WARNING: basic af, not optimized just yet
-contract GobblerThrone is ERC20 {
+contract GobblerThrone is ERC20, Multicall {
     struct Participant {
         address account;
         uint16 gobblerId;
