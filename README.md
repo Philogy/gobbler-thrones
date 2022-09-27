@@ -2,8 +2,8 @@
 > No one person can bear the might of a legendary gobbler, we shall bear it together!
 
 `GobblerThrone` is a relatively simple pooling contract that can be deployed by
-anybody. It allows anybody to join a pool by depositing their revealed Gobblers
-in the hopes of minting a _Legendary Gobbler_ together.
+anybody. The deployed pools can be joined by anybody by depositing their revealed Gobblers.
+The core goal is to make exposure to Legendary Gobblers more accessible to average holders.
 
 If the legendary mint is successful the almighty, freshly minted legendary Gobbler
 is placed upon the throne, out of all the participants' reach, accruing GOO, locked
@@ -41,3 +41,6 @@ To simplify the system and ensure the maximum amount of GOO is issued GOO can
 only be withdrawn once the throne is dissolved. TODO: Have legendary Gobbler be
 deposited in [Goo Stew](https://github.com/MrToph/goostew/) for even better GOO
 production.
+
+## Testing
+TODO: Need to actually test the contract :P
