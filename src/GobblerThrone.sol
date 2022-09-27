@@ -6,7 +6,6 @@ import {Multicall} from "@openzeppelin/contracts/utils/Multicall.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {IArtGobblers} from "./IArtGobblers.sol";
 
-/// @author Philippe Dumonet <philippe@dumo.net>
 /// @author Philogy <https://github.com/Philogy>
 /// @dev WARNING: basic af, not optimized just yet
 contract GobblerThrone is ERC20, Multicall {
