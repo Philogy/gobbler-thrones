@@ -21,7 +21,8 @@ Due to the decreasing price of legendary Gobblers the contract is first-come
 first-served meaning if there's 60 Gobblers in the contract but the legendary
 only costs 57, only the first 57 participants will be able to receive shares,
 the last 3 will however be able to retrieve their unused Gobblers from the
-throne contract (not including any accrued GOO).
+throne contract (not including any accrued GOO). Shares are minted
+proportionally to the emissions multiple of the deposited Gobbler(s).
 
 ### Failure To Form
 If the throne contract doesn't accrue sufficient Gobblers by a certain time it
