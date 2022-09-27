@@ -65,7 +65,7 @@ contract GobblerThrone is ERC20 {
         address _artGobblers,
         uint256 _maxFormationTime,
         uint256 _totalLifeTime
-    ) ERC20("Gobbler Throne Shares", "GOT", 18) {
+    ) ERC20("Gobbler Throne Shares", "GOTTEM", 18) {
         assert(_maxFormationTime < _totalLifeTime);
         auctionStartsAt = block.timestamp + _totalLifeTime;
         formationFailsAt = block.timestamp + _maxFormationTime;
