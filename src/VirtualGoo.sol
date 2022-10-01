@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IArtGobblers} from "./IArtGobblers.sol";
 
-/// @author Philippe Dumonet <philippe@dumo.net>
+/// @author Philogy <https://github.com/Philogy>
 contract VirtualGoo {
     string public constant name = "Virtual GOO";
     string public constant symbol = "vGOO";
