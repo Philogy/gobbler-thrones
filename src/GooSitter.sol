@@ -23,8 +23,8 @@ contract GooSitter is Owned {
         manager = _manager;
     }
 
-    /// @dev transfers gobblers and virtual GOO to `_recipient`
-    /// @notice does **not** use `safeTransferFrom` so be sure double-check `_recipient`
+    /// @dev Transfers gobblers and virtual GOO to `_recipient`.
+    /// @notice Does **not** use `safeTransferFrom` so be sure double-check `_recipient` before calling.
     function withdraw(address _recipient, uint256[] calldata _gobblerIds)
         external
         onlyOwner
@@ -40,9 +40,8 @@ contract GooSitter is Owned {
         goo.transfer(_recipient, totalVirtualGoo);
     }
 
-    /// @dev Allows the `gooManager` to buy a gobbler on your behalf.
-    /// @dev Not actuallypayable, but callvalue check is done more cheaply in
-    /// assembly.
+    /// @dev Allows the `manager` to buy a gobbler on your behalf.
+    /// @dev Not actually payable, but callvalue check is done more cheaply in assembly.
     function buyGobbler(uint256 _maxPrice) external payable {
         // copy immutables locally since they're not supported in assembly
         address manager_ = manager;
@@ -62,7 +61,7 @@ contract GooSitter is Owned {
         }
     }
 
-    /// @dev doesn't send GOO anywhere so safe for anyone to be able to call
+    /// @dev Doesn't send GOO anywhere so it's safe for anyone to be able to call.
     function consolidateGoo() external {
         gobblers.addGoo(goo.balanceOf(address(this)));
     }
