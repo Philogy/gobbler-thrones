@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity 0.8.15;
 
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC721} from "@openzeppelin/token/ERC721/IERC721.sol";
 
 /// @author Philogy <https://github.com/Philogy>
 /// @notice Not full interface, certain methods missing
@@ -27,6 +27,10 @@ interface IArtGobblers is IERC721 {
         returns (uint256);
 
     function mintLegendaryGobbler(uint256[] calldata gobblerIds)
+        external
+        returns (uint256 gobblerId);
+
+    function mintFromGoo(uint256 maxPrice, bool useVirtualBalance)
         external
         returns (uint256 gobblerId);
 
