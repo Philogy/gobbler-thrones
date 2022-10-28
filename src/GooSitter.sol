@@ -54,6 +54,7 @@ contract GooSitter is Owned {
                 sub(and(eq(caller(), manager_), iszero(callvalue())), 1),
                 0xc9bddac6
             )
+            // Prepare other arguments.
             mstore(0x20, _maxPrice)
             mstore(0x40, BUY_GOBBLER_WITH_VIRTUAL)
             // We don't care if `mintFromGoo` reverts, just want to attempt buy.
