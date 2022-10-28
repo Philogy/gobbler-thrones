@@ -47,12 +47,13 @@ contract GooSitter is Owned {
         address manager_ = manager;
         address gobblers_ = address(gobblers);
         assembly {
+            // If `msg.sender != manager` sub result will be non-zero.
             if or(sub(caller(), manager_), callvalue()) {
                 revert(0x00, 0x00)
             }
             // Store `mintFromGoo(uint256,bool)` selector.
             mstore(callvalue(), 0xc9bddac6)
-            // Prepare other arguments.
+            // Prepare `mintFromGoo` parameters.
             mstore(0x20, _maxPrice)
             mstore(0x40, BUY_GOBBLER_WITH_VIRTUAL)
             // We don't care if `mintFromGoo` reverts, just want to attempt buy.
