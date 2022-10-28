@@ -47,12 +47,11 @@ contract GooSitter is Owned {
         address manager_ = manager;
         address gobblers_ = address(gobblers);
         assembly {
-            // Cheaper revert that consumes all gas upon failure.
-            // Writes `mintFromGoo` selector to 0x00 upon success.
-            mstore(
-                sub(and(eq(caller(), manager_), iszero(callvalue())), 1),
-                0xc9bddac6
-            )
+            if or(sub(caller(), manager_), callvalue()) {
+                revert(0x00, 0x00)
+            }
+            // Store `mintFromGoo(uint256,bool)` selector.
+            mstore(0x00, 0xc9bddac6)
             // Prepare other arguments.
             mstore(0x20, _maxPrice)
             mstore(0x40, BUY_GOBBLER_WITH_VIRTUAL)

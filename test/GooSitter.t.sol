@@ -36,12 +36,13 @@ contract GooSitterTest is Test {
         sitter.buyGobbler{value: _amount}(100e18);
     }
 
-    function testManagerCanBuy(uint256 _maxPrice) external {
+    function testManagerCanBuy() external {
+        uint256 maxPrice = 3000e18;
         vm.prank(manager);
         vm.expectCall(
             address(gobblers),
-            abi.encodeCall(IArtGobblers.mintFromGoo, (_maxPrice, true))
+            abi.encodeCall(IArtGobblers.mintFromGoo, (maxPrice, true))
         );
-        sitter.buyGobbler(_maxPrice);
+        sitter.buyGobbler(maxPrice);
     }
 }
