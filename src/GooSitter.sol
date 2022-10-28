@@ -43,7 +43,7 @@ contract GooSitter is Owned {
     /// @dev Allows the `manager` to buy a gobbler on your behalf.
     /// @dev Not actually payable, but callvalue check is done more cheaply in assembly.
     function buyGobbler(uint256 _maxPrice) external payable {
-        // copy immutables locally since they're not supported in assembly
+        // Copy immutables locally since they're not supported in assembly.
         address manager_ = manager;
         address gobblers_ = address(gobblers);
         assembly {
@@ -58,6 +58,8 @@ contract GooSitter is Owned {
             mstore(0x40, BUY_GOBBLER_WITH_VIRTUAL)
             // We don't care if `mintFromGoo` reverts, just want to attempt buy.
             pop(call(gas(), gobblers_, 0, 0x1c, 0x44, 0x00, 0x00))
+            // End here to ensure we can safely leave the free memory pointer.
+            stop()
         }
     }
 
