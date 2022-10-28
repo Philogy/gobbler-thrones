@@ -51,12 +51,22 @@ contract GooSitter is Owned {
                 revert(0x00, 0x00)
             }
             // Store `mintFromGoo(uint256,bool)` selector.
-            mstore(0x00, 0xc9bddac6)
+            mstore(callvalue(), 0xc9bddac6)
             // Prepare other arguments.
             mstore(0x20, _maxPrice)
             mstore(0x40, BUY_GOBBLER_WITH_VIRTUAL)
             // We don't care if `mintFromGoo` reverts, just want to attempt buy.
-            pop(call(gas(), gobblers_, 0, 0x1c, 0x44, 0x00, 0x00))
+            pop(
+                call(
+                    gas(),
+                    gobblers_,
+                    callvalue(),
+                    0x1c,
+                    0x44,
+                    callvalue(),
+                    callvalue()
+                )
+            )
             // End here to ensure we can safely leave the free memory pointer.
             stop()
         }
