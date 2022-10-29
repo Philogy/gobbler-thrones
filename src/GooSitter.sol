@@ -50,22 +50,14 @@ contract GooSitter is Owned {
         address gobblers_ = address(gobblers);
         assembly {
             // Store `mintFromGoo(uint256,bool)` selector.
-            mstore(callvalue(), 0xc9bddac6)
+            mstore(0x00, 0xc9bddac6)
             // Prepare `mintFromGoo` parameters.
             mstore(0x20, _maxPrice)
             mstore(0x40, BUY_GOBBLER_WITH_VIRTUAL)
 
             // Call optimistically and do `msg.sender` auth require after.
             let failed := iszero(
-                call(
-                    gas(),
-                    gobblers_,
-                    callvalue(),
-                    0x1c,
-                    0x44,
-                    callvalue(),
-                    callvalue()
-                )
+                call(gas(), gobblers_, 0, 0x1c, 0x44, 0x00, 0x00)
             )
 
             // If `msg.sender != manager` sub result will be non-zero.
