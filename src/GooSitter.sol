@@ -56,19 +56,17 @@ contract GooSitter is Owned {
             mstore(0x40, BUY_GOBBLER_WITH_VIRTUAL)
 
             // Call optimistically and do `msg.sender` auth require after.
-            let failed := iszero(
-                call(gas(), gobblers_, 0, 0x1c, 0x44, 0x00, 0x00)
-            )
+            let success := call(gas(), gobblers_, 0, 0x1c, 0x44, 0x00, 0x00)
 
             // If `msg.sender != manager` sub result will be non-zero.
             let authDiff := sub(caller(), manager_)
-            if or(or(authDiff, callvalue()), failed) {
+            if or(or(authDiff, callvalue()), iszero(success)) {
                 if authDiff {
                     // Revert `NotManager()`.
                     mstore(0x00, 0xc0fc8a8a)
                     revert(0x1c, 0x04)
                 }
-                let revSize := mul(failed, returndatasize())
+                let revSize := mul(iszero(callvalue()), returndatasize())
                 returndatacopy(0x00, 0x00, revSize)
                 revert(0x00, revSize)
             }
