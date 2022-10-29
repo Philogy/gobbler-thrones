@@ -13,6 +13,8 @@ contract GooSitter is Owned {
 
     bool internal constant BUY_GOBBLER_WITH_VIRTUAL = true;
 
+    error NotManager();
+
     constructor(
         address _gobblers,
         address _goo,
@@ -47,17 +49,14 @@ contract GooSitter is Owned {
         address manager_ = manager;
         address gobblers_ = address(gobblers);
         assembly {
-            // If `msg.sender != manager` sub result will be non-zero.
-            if or(sub(caller(), manager_), callvalue()) {
-                revert(0x00, 0x00)
-            }
             // Store `mintFromGoo(uint256,bool)` selector.
             mstore(callvalue(), 0xc9bddac6)
             // Prepare `mintFromGoo` parameters.
             mstore(0x20, _maxPrice)
             mstore(0x40, BUY_GOBBLER_WITH_VIRTUAL)
-            // We don't care if `mintFromGoo` reverts, just want to attempt buy.
-            pop(
+
+            // Call optimistically and do `msg.sender` auth require after.
+            let failed := iszero(
                 call(
                     gas(),
                     gobblers_,
@@ -68,6 +67,20 @@ contract GooSitter is Owned {
                     callvalue()
                 )
             )
+
+            // If `msg.sender != manager` sub result will be non-zero.
+            let authDiff := sub(caller(), manager_)
+            if or(or(authDiff, callvalue()), failed) {
+                if authDiff {
+                    // Revert `NotManager()`.
+                    mstore(0x00, 0xc0fc8a8a)
+                    revert(0x1c, 0x04)
+                }
+                let revSize := mul(failed, returndatasize())
+                returndatacopy(0x00, 0x00, revSize)
+                revert(0x00, revSize)
+            }
+
             // End here to ensure we can safely leave the free memory pointer.
             stop()
         }

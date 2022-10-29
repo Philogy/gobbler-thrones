@@ -27,9 +27,10 @@ contract GooSitterTest is Test {
         assertEq(sitter.owner(), owner);
     }
 
-    function testFailNotManagerBuy(address _caller) public {
+    function testNotManagerBuy(address _caller) public {
         vm.assume(_caller != manager);
         vm.prank(_caller);
+        vm.expectRevert(GooSitter.NotManager.selector);
         sitter.buyGobbler(100e18);
     }
 
@@ -42,6 +43,7 @@ contract GooSitterTest is Test {
 
     function testManagerCanBuy() public {
         uint256 maxPrice = 3000e18;
+        gobblers.setMaxPrice(maxPrice);
         vm.prank(manager);
         vm.expectCall(
             address(gobblers),
