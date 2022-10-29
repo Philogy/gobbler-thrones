@@ -52,6 +52,18 @@ contract GooSitterTest is Test {
         sitter.buyGobbler(maxPrice);
     }
 
+    function testRevertingManagerBuy() public {
+        uint256 maxPrice = 269e18;
+        gobblers.setMaxPrice(maxPrice - 1);
+        vm.prank(manager);
+        vm.expectCall(
+            address(gobblers),
+            abi.encodeCall(IArtGobblers.mintFromGoo, (maxPrice, true))
+        );
+        vm.expectRevert(MockArtGobblers.PriceExceededMax.selector);
+        sitter.buyGobbler(maxPrice);
+    }
+
     function testGooConsolidation(uint256 _mintAmount) public {
         goo.mint(address(sitter), _mintAmount);
         sitter.consolidateGoo();
