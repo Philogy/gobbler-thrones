@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity 0.8.15;
 
-import {ERC721} from "solmate/tokens/ERC721.sol";
+import {ERC721} from "@solmate/tokens/ERC721.sol";
 import {MockERC20} from "./MockERC20.sol";
 
 /// @author Philippe Dumonet <https://github.com/philogy>

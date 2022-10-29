@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {Multicall} from "@openzeppelin/utils/Multicall.sol";
-import {ERC20} from "solmate/tokens/ERC20.sol";
+import {ERC20} from "@solmate/tokens/ERC20.sol";
 import {IArtGobblers} from "./IArtGobblers.sol";
 
 /// @author Philogy <https://github.com/Philogy>
