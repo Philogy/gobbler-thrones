@@ -9,12 +9,20 @@ contract TotalGoo {
     string public constant name = "Total GOO (virtual + token)";
     string public constant symbol = "tGOO";
 
-    IArtGobblers public immutable artGobblers;
-    IERC20 public immutable goo;
+    uint8 public constant decimals = 18;
 
-    constructor(address _artGobblers) {
-        artGobblers = IArtGobblers(_artGobblers);
-        goo = IERC20(IArtGobblers(_artGobblers).goo());
+    IArtGobblers public constant artGobblers =
+        IArtGobblers(0x60bb1e2AA1c9ACAfB4d34F71585D7e959f387769);
+
+    IERC20 public immutable goo =
+        IERC20(0x600000000a36F3cD48407e35eB7C5c910dc1f7a8);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    constructor() {
+        // Ensure Etherscan recognizes contract as ERC20.
+        emit Transfer(address(0), address(uint160(0xdead)), 1);
+        emit Transfer(address(uint160(0xdead)), address(0), 1);
     }
 
     function balanceOf(address _addr) external view returns (uint256) {
