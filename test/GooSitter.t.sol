@@ -2,10 +2,10 @@
 pragma solidity 0.8.15;
 
 import {Test} from "forge-std/Test.sol";
-import {GooSitter} from "../src/GooSitter.sol";
 import {MockArtGobblers} from "./mock/MockArtGobblers.sol";
 import {MockERC20} from "./mock/MockERC20.sol";
 import {IArtGobblers} from "../src/IArtGobblers.sol";
+import {GooSitter} from "../src/GooSitter.sol";
 
 /// @author Philippe Dumonet <https://github.com/philogy>
 contract GooSitterTest is Test {
@@ -19,8 +19,7 @@ contract GooSitterTest is Test {
     function setUp() public {
         goo = new MockERC20();
         gobblers = new MockArtGobblers(goo);
-        vm.prank(owner);
-        sitter = new GooSitter(address(gobblers), address(goo), manager);
+        sitter = new GooSitter(manager, owner);
     }
 
     function testInitialOwner() public {

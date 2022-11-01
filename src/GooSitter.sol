@@ -7,21 +7,17 @@ import {IArtGobblers} from "./IArtGobblers.sol";
 
 /// @author Philippe Dumonet <https://github.com/philogy>
 contract GooSitter is Owned {
-    IArtGobblers internal immutable gobblers;
-    IERC20 internal immutable goo;
+    IArtGobblers internal constant gobblers =
+        IArtGobblers(0x60bb1e2AA1c9ACAfB4d34F71585D7e959f387769);
+    IERC20 internal constant goo =
+        IERC20(0x600000000a36F3cD48407e35eB7C5c910dc1f7a8);
     address internal immutable manager;
 
     bool internal constant BUY_GOBBLER_WITH_VIRTUAL = true;
 
     error NotManager();
 
-    constructor(
-        address _gobblers,
-        address _goo,
-        address _manager
-    ) Owned(msg.sender) {
-        gobblers = IArtGobblers(_gobblers);
-        goo = IERC20(_goo);
+    constructor(address _manager, address _initialOwner) Owned(_initialOwner) {
         manager = _manager;
     }
 
