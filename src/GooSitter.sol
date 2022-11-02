@@ -23,19 +23,21 @@ contract GooSitter is Owned {
 
     /// @dev Transfers gobblers and virtual GOO to `_recipient`.
     /// @notice Does **not** use `safeTransferFrom` so be sure double-check `_recipient` before calling.
-    function withdraw(address _recipient, uint256[] calldata _gobblerIds)
-        external
-        onlyOwner
-    {
+    function withdraw(
+        address _recipient,
+        uint256[] calldata _gobblerIds,
+        uint256 _gooAmount
+    ) external onlyOwner {
         uint256 gobblerCount = _gobblerIds.length;
         for (uint256 i; i < gobblerCount; ) {
             gobblers.transferFrom(address(this), _recipient, _gobblerIds[i]);
             // prettier-ignore
             unchecked { ++i; }
         }
-        uint256 totalVirtualGoo = gobblers.gooBalance(address(this));
-        gobblers.removeGoo(totalVirtualGoo);
-        goo.transfer(_recipient, totalVirtualGoo);
+        if (_gooAmount == type(uint256).max)
+            _gooAmount = gobblers.gooBalance(address(this));
+        gobblers.removeGoo(_gooAmount);
+        goo.transfer(_recipient, _gooAmount);
     }
 
     /// @dev Allows the `manager` to buy a gobbler on your behalf.
