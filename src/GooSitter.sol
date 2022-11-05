@@ -16,7 +16,7 @@ contract GooSitter is Owned {
     bool internal constant BUY_GOBBLER_WITH_VIRTUAL = true;
 
     error NotManager();
-    error FailedCustomCall(bytes memory errorData);
+    error FailedCustomCall(bytes errorData);
 
     constructor(address _manager, address _initialOwner) Owned(_initialOwner) {
         manager = _manager;
