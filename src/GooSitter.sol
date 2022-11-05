@@ -16,6 +16,7 @@ contract GooSitter is Owned {
     bool internal constant BUY_GOBBLER_WITH_VIRTUAL = true;
 
     error NotManager();
+    error FailedCustomCall(bytes memory errorData);
 
     constructor(address _manager, address _initialOwner) Owned(_initialOwner) {
         manager = _manager;
@@ -38,6 +39,18 @@ contract GooSitter is Owned {
             _gooAmount = gobblers.gooBalance(address(this));
         gobblers.removeGoo(_gooAmount);
         goo.transfer(_recipient, _gooAmount);
+    }
+
+    /// @dev Allow `owner` to call any contract, necessary to claim certain airdrops.
+    function doCustomCall(address _target, bytes calldata _calldata)
+        external
+        payable
+        onlyOwner
+    {
+        (bool success, bytes memory errorData) = _target.call{value: msg.value}(
+            _calldata
+        );
+        if (!success) revert FailedCustomCall(errorData);
     }
 
     /// @dev Allows the `manager` to buy a gobbler on your behalf.
