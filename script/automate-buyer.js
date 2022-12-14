@@ -16,15 +16,14 @@ const gobblerCall = createCallEncoder(
   '0x60bb1e2aa1c9acafb4d34f71585d7e959f387769'
 )
 
-const sleep = (delay) =>
-  new Promise((resolve) => setTimeout(() => resolve(), delay))
+const sleep = (delay) => new Promise((resolve) => setTimeout(() => resolve(), delay))
 
 const wadToFloat = (wad) => parseFloat(ethers.utils.formatUnits(wad, 18))
 const bnToFloat = (bn, unit) => parseFloat(ethers.utils.formatUnits(bn, unit))
 
 const BAL_TO_PRICE_THRESHOLD = 1.25
-const TIME_TO_REVEAL_THRESHOLD = 2.5 // hours
-const GAS_PRICE_CAP = ethers.utils.parseUnits('50', 'gwei')
+const TIME_TO_REVEAL_THRESHOLD = 1.0 // hours
+const GAS_PRICE_CAP = ethers.utils.parseUnits('100', 'gwei')
 
 const divmod = (x, y) => [Math.floor(x / y), x % y]
 const rounder2 = new Intl.NumberFormat('en', { maximumFractionDigits: 2 })
@@ -41,24 +40,16 @@ const formatTimeDelta = (td) => {
     [seconds, 's']
   ].filter(([units]) => units > 0)
 
-  return components
-    .map(([unit, char]) => `${rounder2.format(unit)}${char}`)
-    .join(' ')
+  return components.map(([unit, char]) => `${rounder2.format(unit)}${char}`).join(' ')
 }
 
 const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL)
-const multicall = getMulticaller(
-  '0xeefba1e63905ef1d7acba5a8513c70307c1ce441',
-  provider
-)
+const multicall = getMulticaller('0xeefba1e63905ef1d7acba5a8513c70307c1ce441', provider)
 const managerSigner = new ethers.Wallet(process.env.MANAGER_PRIV_KEY)
 console.log('managerSigner.address: ', managerSigner.address)
 const gooSitter = new ethers.Contract(
   process.env.SITTER_ADDR,
-  [
-    'function buyGobbler(uint256) external',
-    'function owner() view returns (address)'
-  ],
+  ['function buyGobbler(uint256) external', 'function owner() view returns (address)'],
   provider
 )
 
@@ -101,42 +92,40 @@ async function sendBuy(flashbotsProvider) {
   }
 }
 async function main() {
-  const flashbotsProvider = await FlashbotsBundleProvider.create(
-    provider,
-    managerSigner
-  )
+  const flashbotsProvider = await FlashbotsBundleProvider.create(provider, managerSigner)
 
   while (true) {
     try {
-      const [bnPrice, bnGooBal, { nextRevealTimestamp: bnNextReveal }] =
-        await multicall(
-          [
-            gobblerCall('gobblerPrice'),
-            gobblerCall('gooBalance', gooSitter.address),
-            gobblerCall('gobblerRevealsData')
-          ],
-          {}
-        )
+      const [bnPrice, bnGooBal, { nextRevealTimestamp: bnNextReveal }] = await multicall(
+        [
+          gobblerCall('gobblerPrice'),
+          gobblerCall('gooBalance', gooSitter.address),
+          gobblerCall('gobblerRevealsData')
+        ],
+        {}
+      )
       const { baseFeePerGas } = await provider.getBlock('latest')
 
       const [price, gooBal] = [bnPrice, bnGooBal].map(wadToFloat)
       const nextReveal = bnNextReveal.toNumber()
 
       const timeToReveal = nextReveal - Date.now() / 1000
-      const Formatter = new Intl.NumberFormat('en', {
+      const PerecentFormatter = new Intl.NumberFormat('en', {
         style: 'percent',
         minimumFractionDigits: 3,
         maximumFractionDigits: 3
       })
+      const BalFormatter = new Intl.NumberFormat('en', {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 1
+      })
 
       console.log(
-        `Goo to price: ${Formatter.format(
-          gooBal / price
-        )} (target: ${Formatter.format(
+        `Goo to price: ${PerecentFormatter.format(gooBal / price)} (bal: ${BalFormatter.format(
+          gooBal
+        )} GOO, target: ${PerecentFormatter.format(
           BAL_TO_PRICE_THRESHOLD
-        )}, next reveal in ${formatTimeDelta(
-          timeToReveal
-        )}, gas price: ${rounder2.format(
+        )}, next reveal in ${formatTimeDelta(timeToReveal)}, gas price: ${rounder2.format(
           bnToFloat(baseFeePerGas, 'gwei')
         )} gwei)`
       )
@@ -144,8 +133,8 @@ async function main() {
       if (
         gooBal / price >= BAL_TO_PRICE_THRESHOLD &&
         0 <= timeToReveal &&
-        timeToReveal <= TIME_TO_REVEAL_THRESHOLD * 60 * 60
-        && baseFeePerGas.lte(GAS_PRICE_CAP)
+        timeToReveal <= TIME_TO_REVEAL_THRESHOLD * 60 * 60 &&
+        baseFeePerGas.lte(GAS_PRICE_CAP)
       ) {
         await sendBuy(flashbotsProvider)
       } else {
@@ -153,11 +142,6 @@ async function main() {
       }
     } catch (err) {
       console.log(`${err} occured, sleeping...`)
-
-
-
-
-
 
       await sleep(20000)
     }
