@@ -35,16 +35,13 @@ contract GobblerBuyerModule {
         emit BuyerSet(msg.sender, _buyer);
     }
 
-    function buyFor(
-        address _safe,
-        uint256 _maxPrice,
-        bool _useVirtualBalance
-    ) external preventDelegateCall {
+    /// @dev Always uses virtual balances, GOO tokens are not spendable by the buyer
+    function buyFor(address _safe, uint256 _maxPrice) external preventDelegateCall {
         if (buyerOf[_safe] != msg.sender) revert NotBuyer();
         bool success = IModuleManager(_safe).execTransactionFromModule(
             GOBBLER,
             0,
-            abi.encodeCall(IArtGobblers.mintFromGoo, (_maxPrice, _useVirtualBalance)),
+            abi.encodeCall(IArtGobblers.mintFromGoo, (_maxPrice, true)),
             Operation.Call
         );
         if (!success) revert BuyFailed();

@@ -63,5 +63,8 @@ Safe](https://gnosis-safe.io) users.
 **How to use:**
 1. Enable the module deployed at `(deployment pending)` in your safe
 2. Configure the buying hot wallet via `setBuyer(address)`
-3. The buying hot wallet can now buy on behalf of your safe by calling `buyFor(address safe, uint maxPrice, bool useVirtualBalance)` on the module
+3. The buying hot wallet can now buy on behalf of your safe by calling `buyFor(address safe, uint maxPrice)` on the module
+
+**Note:** The designated can only spend accruing virtual GOO, if you want to set aside GOO you can
+convert some virtual GOO to token GOO via the ArtGobbler's `removeGoo` method.
 
