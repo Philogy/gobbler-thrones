@@ -4,14 +4,13 @@ pragma solidity 0.8.15;
 import {Test} from "forge-std/Test.sol";
 import {MockArtGobblers} from "./mock/MockArtGobblers.sol";
 import {MockERC20} from "./mock/MockERC20.sol";
-import {IArtGobblers} from "../src/IArtGobblers.sol";
+import {IArtGobblers} from "../src/interfaces/IArtGobblers.sol";
 import {GooSitter} from "../src/GooSitter.sol";
 
 /// @author Philippe Dumonet <https://github.com/philogy>
 contract GooSitterTest is Test {
     MockERC20 goo = MockERC20(0x600000000a36F3cD48407e35eB7C5c910dc1f7a8);
-    MockArtGobblers gobblers =
-        MockArtGobblers(0x60bb1e2AA1c9ACAfB4d34F71585D7e959f387769);
+    MockArtGobblers gobblers = MockArtGobblers(0x60bb1e2AA1c9ACAfB4d34F71585D7e959f387769);
     GooSitter sitter;
 
     address manager = vm.addr(1);
@@ -47,10 +46,7 @@ contract GooSitterTest is Test {
         uint256 maxPrice = 3000e18;
         gobblers.setMaxPrice(maxPrice);
         vm.prank(manager);
-        vm.expectCall(
-            address(gobblers),
-            abi.encodeCall(IArtGobblers.mintFromGoo, (maxPrice, true))
-        );
+        vm.expectCall(address(gobblers), abi.encodeCall(IArtGobblers.mintFromGoo, (maxPrice, true)));
         sitter.buyGobbler(maxPrice);
     }
 
@@ -58,10 +54,7 @@ contract GooSitterTest is Test {
         uint256 maxPrice = 269e18;
         gobblers.setMaxPrice(maxPrice - 1);
         vm.prank(manager);
-        vm.expectCall(
-            address(gobblers),
-            abi.encodeCall(IArtGobblers.mintFromGoo, (maxPrice, true))
-        );
+        vm.expectCall(address(gobblers), abi.encodeCall(IArtGobblers.mintFromGoo, (maxPrice, true)));
         vm.expectRevert(MockArtGobblers.PriceExceededMax.selector);
         sitter.buyGobbler(maxPrice);
     }
