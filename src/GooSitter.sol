@@ -3,14 +3,12 @@ pragma solidity 0.8.15;
 
 import {Owned} from "@solmate/auth/Owned.sol";
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
-import {IArtGobblers} from "./IArtGobblers.sol";
+import {IArtGobblers} from "./interfaces/IArtGobblers.sol";
 
 /// @author Philippe Dumonet <https://github.com/philogy>
 contract GooSitter is Owned {
-    IArtGobblers internal constant gobblers =
-        IArtGobblers(0x60bb1e2AA1c9ACAfB4d34F71585D7e959f387769);
-    IERC20 internal constant goo =
-        IERC20(0x600000000a36F3cD48407e35eB7C5c910dc1f7a8);
+    IArtGobblers internal constant gobblers = IArtGobblers(0x60bb1e2AA1c9ACAfB4d34F71585D7e959f387769);
+    IERC20 internal constant goo = IERC20(0x600000000a36F3cD48407e35eB7C5c910dc1f7a8);
     address internal immutable manager;
 
     bool internal constant BUY_GOBBLER_WITH_VIRTUAL = true;
@@ -35,21 +33,14 @@ contract GooSitter is Owned {
             // prettier-ignore
             unchecked { ++i; }
         }
-        if (_gooAmount == type(uint256).max)
-            _gooAmount = gobblers.gooBalance(address(this));
+        if (_gooAmount == type(uint256).max) _gooAmount = gobblers.gooBalance(address(this));
         gobblers.removeGoo(_gooAmount);
         goo.transfer(_recipient, _gooAmount);
     }
 
     /// @dev Allow `owner` to call any contract, necessary to claim certain airdrops.
-    function doCustomCall(address _target, bytes calldata _calldata)
-        external
-        payable
-        onlyOwner
-    {
-        (bool success, bytes memory errorData) = _target.call{value: msg.value}(
-            _calldata
-        );
+    function doCustomCall(address _target, bytes calldata _calldata) external payable onlyOwner {
+        (bool success, bytes memory errorData) = _target.call{value: msg.value}(_calldata);
         if (!success) revert FailedCustomCall(errorData);
     }
 

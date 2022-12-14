@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
-import {IArtGobblers} from "./IArtGobblers.sol";
+import {IArtGobblers} from "./interfaces/IArtGobblers.sol";
 
 /// @author philogy <https://github.com/philogy>
 contract TotalGoo {
@@ -11,11 +11,9 @@ contract TotalGoo {
 
     uint8 public constant decimals = 18;
 
-    IArtGobblers public constant artGobblers =
-        IArtGobblers(0x60bb1e2AA1c9ACAfB4d34F71585D7e959f387769);
+    IArtGobblers public constant artGobblers = IArtGobblers(0x60bb1e2AA1c9ACAfB4d34F71585D7e959f387769);
 
-    IERC20 public immutable goo =
-        IERC20(0x600000000a36F3cD48407e35eB7C5c910dc1f7a8);
+    IERC20 public immutable goo = IERC20(0x600000000a36F3cD48407e35eB7C5c910dc1f7a8);
 
     event Transfer(address indexed from, address indexed to, uint256 value);
 

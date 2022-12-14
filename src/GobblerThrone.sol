@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {Multicall} from "@openzeppelin/utils/Multicall.sol";
 import {ERC20} from "@solmate/tokens/ERC20.sol";
-import {IArtGobblers} from "./IArtGobblers.sol";
+import {IArtGobblers} from "./interfaces/IArtGobblers.sol";
 
 /// @author Philogy <https://github.com/Philogy>
 /// @dev WARNING: basic af, not optimized just yet
@@ -22,8 +22,7 @@ contract GobblerThrone is ERC20, Multicall {
 
     uint256 internal constant ONE_IN_BPS = 10000; // 5%
     uint256 internal constant BID_MIN_INCREASE_BPS = 500; // 5%
-    uint256 internal constant BID_MIN_INCREASE_FACTOR_BPS =
-        ONE_IN_BPS + BID_MIN_INCREASE_BPS; // x1.05
+    uint256 internal constant BID_MIN_INCREASE_FACTOR_BPS = ONE_IN_BPS + BID_MIN_INCREASE_BPS; // x1.05
     uint256 internal constant AUCTION_GRACE_PERIOD = 30 minutes;
     uint256 internal constant AUCTION_START_DURATION = 7 days;
 
@@ -78,14 +77,10 @@ contract GobblerThrone is ERC20, Multicall {
 
     function state() public view returns (ThroneState) {
         if (legendaryGobblerId == 0) {
-            return
-                block.timestamp >= formationFailsAt
-                    ? ThroneState.FormationFailed
-                    : ThroneState.Forming;
+            return block.timestamp >= formationFailsAt ? ThroneState.FormationFailed : ThroneState.Forming;
         } else {
             if (block.timestamp < auctionStartsAt) return ThroneState.Formed;
-            if (topBidder == address(0) || block.timestamp < auctionEnd)
-                return ThroneState.AuctionInProgress;
+            if (topBidder == address(0) || block.timestamp < auctionEnd) return ThroneState.AuctionInProgress;
             return ThroneState.Dissolved;
         }
     }
@@ -94,14 +89,9 @@ contract GobblerThrone is ERC20, Multicall {
     function join(uint256 _gobblerId) external onlyState(ThroneState.Forming) {
         artGobblers.transferFrom(msg.sender, address(this), _gobblerId);
         unchecked {
-            uint256 emissionsMultiple = artGobblers.getGobblerEmissionMultiple(
-                _gobblerId
-            );
+            uint256 emissionsMultiple = artGobblers.getGobblerEmissionMultiple(_gobblerId);
             // abuse underflow for cheaper range check
-            if (
-                (emissionsMultiple - 6) >= 4 ||
-                _gobblerId >= FIRST_LEGENDARY_GOBBLER_ID
-            ) revert UnacceptableGobbler();
+            if ((emissionsMultiple - 6) >= 4 || _gobblerId >= FIRST_LEGENDARY_GOBBLER_ID) revert UnacceptableGobbler();
 
             participants[totalJoined++] = Participant({
                 account: msg.sender,
@@ -121,17 +111,12 @@ contract GobblerThrone is ERC20, Multicall {
             // prettier-ignore
             unchecked { i++; }
         }
-        legendaryGobblerId = uint16(
-            artGobblers.mintLegendaryGobbler(gobblerIds)
-        );
+        legendaryGobblerId = uint16(artGobblers.mintLegendaryGobbler(gobblerIds));
         totalParticipants = uint16(gobblersToBeSacrificed);
     }
 
     /// @dev retrieve Gobbler if throne formation failed
-    function failExit(uint256 _participantId)
-        external
-        onlyState(ThroneState.FormationFailed)
-    {
+    function failExit(uint256 _participantId) external onlyState(ThroneState.FormationFailed) {
         address account = participants[_participantId].account;
         uint256 gobblerId = participants[_participantId].gobblerId;
         delete participants[_participantId];
@@ -139,10 +124,7 @@ contract GobblerThrone is ERC20, Multicall {
     }
 
     /// @dev if legendary Gobbler was minted get shares
-    function issueShares(uint256 _participantId)
-        external
-        onlyState(ThroneState.Formed)
-    {
+    function issueShares(uint256 _participantId) external onlyState(ThroneState.Formed) {
         if (_participantId >= totalParticipants) revert NotParticipant();
         address account = participants[_participantId].account;
         uint256 multiple = participants[_participantId].multiple;
@@ -152,10 +134,7 @@ contract GobblerThrone is ERC20, Multicall {
     }
 
     /// @dev retrieve Gobbler that couldn't be used to mint legendary
-    function notParticipantExit(uint256 _participantId)
-        external
-        onlyState(ThroneState.Formed)
-    {
+    function notParticipantExit(uint256 _participantId) external onlyState(ThroneState.Formed) {
         if (_participantId < totalParticipants) revert ParticipantCannotExit();
         address account = participants[_participantId].account;
         uint256 gobblerId = participants[_participantId].gobblerId;
@@ -164,10 +143,7 @@ contract GobblerThrone is ERC20, Multicall {
     }
 
     /// @dev bid in auction using GOO tokens
-    function bid(uint256 _bidAmount)
-        external
-        onlyState(ThroneState.AuctionInProgress)
-    {
+    function bid(uint256 _bidAmount) external onlyState(ThroneState.AuctionInProgress) {
         goo.transferFrom(msg.sender, address(this), _bidAmount);
         address currentTopBidder = topBidder;
         if (currentTopBidder == address(0)) {
@@ -175,36 +151,25 @@ contract GobblerThrone is ERC20, Multicall {
             if (_bidAmount == 0) revert BidTooLow();
         } else {
             uint256 prevBestBid = bestBid;
-            if (
-                _bidAmount * ONE_IN_BPS <
-                prevBestBid * BID_MIN_INCREASE_FACTOR_BPS
-            ) revert BidTooLow();
+            if (_bidAmount * ONE_IN_BPS < prevBestBid * BID_MIN_INCREASE_FACTOR_BPS) revert BidTooLow();
             goo.transfer(currentTopBidder, prevBestBid);
         }
         bestBid = uint128(_bidAmount);
         topBidder = msg.sender;
         uint256 minimumEndTime = block.timestamp + AUCTION_GRACE_PERIOD;
         uint256 currentAuctionEnd = auctionEnd;
-        auctionEnd = uint64(
-            minimumEndTime > currentAuctionEnd
-                ? minimumEndTime
-                : currentAuctionEnd
-        );
+        auctionEnd = uint64(minimumEndTime > currentAuctionEnd ? minimumEndTime : currentAuctionEnd);
     }
 
     /// @dev claim share of GOO produced by the legendary + auction proceeds
-    function claimShare(address _recipient)
-        external
-        onlyState(ThroneState.Dissolved)
-    {
+    function claimShare(address _recipient) external onlyState(ThroneState.Dissolved) {
         // Convert virtual GOO into transferable ERC20 GOO.
         uint256 vGoo = artGobblers.gooBalance(address(this));
         if (vGoo != 0) artGobblers.removeGoo(vGoo);
 
         uint256 shares = balanceOf[msg.sender];
         uint256 totalShares = totalSupply;
-        uint256 gooShare = (goo.balanceOf(address(this)) * shares) /
-            totalShares;
+        uint256 gooShare = (goo.balanceOf(address(this)) * shares) / totalShares;
         _burn(msg.sender, shares);
         goo.transfer(_recipient, gooShare);
     }

@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
-import {IArtGobblers} from "./IArtGobblers.sol";
+import {IArtGobblers} from "./interfaces/IArtGobblers.sol";
 
 /// @author Philogy <https://github.com/Philogy>
 contract VirtualGoo {
