@@ -43,6 +43,12 @@ async function main() {
   for (const [gobbler, multiple] of _.zip(targetGobblers, multiples)) {
     console.log(`${gobbler}: x${multiple}`)
   }
+  if (multiples.length >= 1) {
+    const totalMultiple = multiples.reduce((total, x) => total.add(x))
+    console.log(`Total Multiple (${multiples.length}): ${totalMultiple}`)
+  } else {
+    console.log('No gobblers')
+  }
 }
 
 main()
