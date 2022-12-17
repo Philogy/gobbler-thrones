@@ -4,12 +4,13 @@ pragma solidity 0.8.15;
 import {ModuleManager} from "@gnosis-safe/base/ModuleManager.sol";
 import {Enum} from "@gnosis-safe/common/Enum.sol";
 import {IArtGobblers} from "./interfaces/IArtGobblers.sol";
+import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 
 /// @author philogy <https://github.com/philogy>
-
 contract GobblerBuyerModule {
     address internal immutable THIS;
     address internal constant GOBBLER = 0x60bb1e2AA1c9ACAfB4d34F71585D7e959f387769;
+    address internal constant GOO = 0x600000000a36F3cD48407e35eB7C5c910dc1f7a8;
 
     mapping(address => address) public buyerOf;
 
@@ -18,6 +19,7 @@ contract GobblerBuyerModule {
     error NotBuyer();
     error BuyFailed();
     error AttemptedDelegate();
+    error RemoveFailed();
 
     constructor() {
         THIS = address(this);
@@ -46,5 +48,33 @@ contract GobblerBuyerModule {
             Enum.Operation.Call
         );
         if (!success) revert BuyFailed();
+    }
+
+    function removeAllGoo() external preventDelegateCall {
+        uint256 totalVirtualGoo = IArtGobblers(GOBBLER).gooBalance(msg.sender);
+        bool success = ModuleManager(msg.sender).execTransactionFromModule(
+            GOBBLER,
+            0,
+            abi.encodeCall(IArtGobblers.removeGoo, (totalVirtualGoo)),
+            Enum.Operation.Call
+        );
+        if (!success) revert RemoveFailed();
+    }
+
+    function removeAllGooAndTransferTo(address _recipient) external preventDelegateCall {
+        uint256 totalVirtualGoo = IArtGobblers(GOBBLER).gooBalance(msg.sender);
+        bool successRemove = ModuleManager(msg.sender).execTransactionFromModule(
+            GOBBLER,
+            0,
+            abi.encodeCall(IArtGobblers.removeGoo, (totalVirtualGoo)),
+            Enum.Operation.Call
+        );
+        bool successTransfer = ModuleManager(msg.sender).execTransactionFromModule(
+            GOO,
+            0,
+            abi.encodeCall(IERC20.transfer, (_recipient, totalVirtualGoo)),
+            Enum.Operation.Call
+        );
+        if (!(successRemove && successTransfer)) revert RemoveFailed();
     }
 }
