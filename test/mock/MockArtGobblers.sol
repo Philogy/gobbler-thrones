@@ -13,6 +13,7 @@ contract MockArtGobblers is ERC721 {
     mapping(address => uint256) public gooBalance;
     uint256 public totalSupply;
     uint256 public maxPrice;
+    address public lastCaller;
 
     error PriceExceededMax();
 
@@ -44,14 +45,11 @@ contract MockArtGobblers is ERC721 {
         }
     }
 
-    function mintFromGoo(uint256 _maxPrice, bool _useVirtualBalance)
-        external
-        returns (uint256 gobblerId)
-    {
+    function mintFromGoo(uint256 _maxPrice, bool _useVirtualBalance) external returns (uint256 gobblerId) {
         if (_maxPrice > maxPrice) revert PriceExceededMax();
+        lastCaller = msg.sender;
         __someState++;
-        gobblerId = uint256(
-            keccak256(abi.encode(_maxPrice, _useVirtualBalance))
-        );
+        gobblerId = uint256(keccak256(abi.encode(_maxPrice, _useVirtualBalance)));
+        _mint(msg.sender, gobblerId);
     }
 }
