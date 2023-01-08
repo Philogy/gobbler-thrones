@@ -11,7 +11,8 @@ const gobblerCall = createCallEncoder(
     'function gobblerPrice() public view returns (uint256)',
     'function getVRGDAPrice(int256, uint256) public view returns (uint256)',
     'function currentNonLegendaryId() public view returns (uint128)',
-    'function getGobblerEmissionMultiple(uint256) returns (uint256)'
+    'function getGobblerEmissionMultiple(uint256) returns (uint256)',
+    'function getGobblerData(uint256) returns (address owner, uint64 idx, uint32 emissionMultiple)'
   ],
   '0x60bb1e2aa1c9acafb4d34f71585d7e959f387769'
 )
@@ -25,10 +26,11 @@ async function main() {
   const tokenIds = _.range(1, totalMinted.toNumber() + 1)
 
   console.log('getting all owners')
-  const sortedOwners = await multicall(
-    tokenIds.map((tokenId) => gobblerCall('ownerOf', tokenId)),
+  const gobblerData = await multicall(
+    tokenIds.map((tokenId) => gobblerCall('getGobblerData', tokenId)),
     {}
   )
+  const sortedOwners = _.map(gobblerData, 'owner')
 
   console.log('filtering for target owner')
   const targetGobblers = _.zip(tokenIds, sortedOwners)
@@ -54,6 +56,9 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch((err) => {
-    console.error('err:', err)
+    // console.error('err:', err)
+    const fs = require('fs')
+    fs.writeFileSync('./error.json', JSON.stringify(err, null, 2))
+    console.log('saved error')
     process.exit(1)
   })
